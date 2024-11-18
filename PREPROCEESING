@@ -1,0 +1,77 @@
+import pandas as pd
+import numpy as np
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+
+# Sample dataset
+data = {
+    'age': [25, np.nan, 28, 35, 40],
+    'salary': [50000, 60000, np.nan, 80000, 100000],
+    'city': ['New York', 'San Francisco', np.nan, 'Los Angeles', 'Chicago'],
+    'purchased': [0, 1, 1, 0, 1]
+}
+
+df = pd.DataFrame(data)
+
+print("Original DataFrame:")
+print(df)
+
+# Step 1: Handling Missing Data
+# Define columns by type
+numeric_features = ['age', 'salary']
+categorical_features = ['city']
+
+# Numeric imputer (mean strategy)
+numeric_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='mean')),
+    ('scaler', StandardScaler())
+])
+
+# Categorical imputer (most frequent strategy) + One-Hot Encoding
+categorical_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='most_frequent')),
+    ('onehot', OneHotEncoder(handle_unknown='ignore'))
+])
+
+# Combine preprocessors in a column transformer
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', numeric_transformer, numeric_features),
+        ('cat', categorical_transformer, categorical_features)
+    ]
+)
+
+# Step 2: Applying the Preprocessor
+# Separate features and target variable
+X = df.drop(columns=['purchased'])
+y = df['purchased']
+
+# Preprocess the features
+X_preprocessed = preprocessor.fit_transform(X)
+
+print("\nPreprocessed Features:")
+print(X_preprocessed)
+
+# Step 3: Integrating into a Full Pipeline
+# Example: Pipeline including preprocessing and a classifier
+from sklearn.ensemble import RandomForestClassifier
+
+model = Pipeline(steps=[
+    ('preprocessor', preprocessor),
+    ('classifier', RandomForestClassifier())
+])
+
+# Fitting the pipeline to the data
+model.fit(X, y)
+
+# Example Prediction
+sample_data = pd.DataFrame({
+    'age': [30],
+    'salary': [70000],
+    'city': ['Los Angeles']
+})
+
+print("\nPrediction for New Sample:")
+print(model.predict(sample_data))
