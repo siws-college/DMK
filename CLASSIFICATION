@@ -1,0 +1,37 @@
+# Import necessary libraries
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report
+import pandas as pd
+
+# Load the Iris dataset
+iris = load_iris()
+
+# Convert to a DataFrame for better readability
+data = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+data['target'] = iris.target
+data['target_names'] = data['target'].apply(lambda x: iris.target_names[x])
+
+# Display the first few rows of the dataset
+print("First few rows of the dataset:")
+print(data.head())
+
+# Separate features (X) and target labels (y)
+X = iris.data  # Features
+y = iris.target  # Labels
+
+# Split into training and testing datasets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Initialize and train a Decision Tree Classifier
+classifier = DecisionTreeClassifier(random_state=42)
+classifier.fit(X_train, y_train)
+
+# Make predictions
+y_pred = classifier.predict(X_test)
+
+# Evaluate the model
+print("\nAccuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, target_names=iris.target_names))
